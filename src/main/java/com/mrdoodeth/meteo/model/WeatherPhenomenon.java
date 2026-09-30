@@ -1,5 +1,6 @@
 package com.mrdoodeth.meteo.model;
 
+/** Погодное явление. */
 public enum WeatherPhenomenon {
     NONE,
     SUNNY,
@@ -8,5 +9,15 @@ public enum WeatherPhenomenon {
     SNOW,
     HAIL,
     FOG,
-    THUNDERSTORM
+    THUNDERSTORM;
+
+    /** Указывает, является ли само явление осадками.
+     * @return true для дождя, снега и града
+     */
+    public boolean isPrecipitation() {
+        return switch (this) {
+            case RAIN, SNOW, HAIL -> true;
+            default -> false;
+        };
+    }
 }

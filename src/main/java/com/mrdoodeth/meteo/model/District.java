@@ -3,25 +3,37 @@ package com.mrdoodeth.meteo.model;
 import java.time.ZoneId;
 import java.util.Objects;
 
-public record District(String id, String name, ZoneId zone) {
+/** Район.
+ * @param id идентификатор района
+ * @param zone часовой пояс
+ */
+public record District(String id, ZoneId zone) {
+    /** Проверяет обязательные поля.
+     * @throws IllegalArgumentException при пустом ID или ID, равном null
+     * @throws NullPointerException при отсутствующем часовом поясе
+     */
     public District {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("District ID must not be blank");
         }
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("District name must not be blank");
-        }
         Objects.requireNonNull(zone, "zone");
     }
 
+    /** Сравнивает районы по ID.
+     * @param other объект для сравнения
+     * @return true при одинаковом ID района
+     */
     @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof District district)) return false;
-        return id.equals(district.id);
+    public boolean equals(Object other) {
+        if (!(other instanceof District district)) return false;
+        return Objects.equals(id, district.id);
     }
 
+    /** Возвращает хеш идентификатора района.
+     * @return хеш ID
+     */
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return Objects.hashCode(id);
     }
 }

@@ -1,5 +1,6 @@
 package com.mrdoodeth.meteo.model;
 
+/** Восемь секторов азимута; нижняя граница включена, верхняя исключена. */
 public enum WindDirection {
     NORTH(337.5, 22.5),
     NORTHEAST(22.5, 67.5),
@@ -18,6 +19,11 @@ public enum WindDirection {
         this.toExclusive = toExclusive;
     }
 
+    /** Определяет румб по азимуту от севера по часовой стрелке.
+     * @param azimuth конечное число в [0, 360)
+     * @return румб
+     * @throws IllegalArgumentException при недопустимом азимуте
+     */
     public static WindDirection fromAzimuth(double azimuth) {
         if (!Double.isFinite(azimuth) || azimuth < 0 || azimuth >= 360) {
             throw new IllegalArgumentException("Azimuth must be in [0, 360)");

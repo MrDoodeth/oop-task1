@@ -24,22 +24,22 @@ public final class ObservationParser {
 
     /** Загружает строки формата
      * {@code stationId;ISO_OFFSET_DATE_TIME;temperatureC;pressureHpa;windSpeed;azimuth;PHENOMENON}.
-     * Пустые строки не пропускаются; время обязано содержать Z или смещение UTC.
      * @param lines строки наблюдений без заголовка
      * @throws ObservationParseException при ошибке строки, включая неизвестную станцию и дубликат;
-     * номер строки начинается с 1, журнал остаётся без изменений
      * @throws NullPointerException если сам массив равен null
      */
     public void parse(String[] lines) throws ObservationParseException {
         Objects.requireNonNull(lines, "lines");
+
         var parsed = new ArrayList<Observation>();
+
         for (int i = 0; i < lines.length; i++) {
             try {
                 var observation = parseLine(lines[i]);
                 journal.validateImportedObservation(observation, parsed);
                 parsed.add(observation);
             } catch (IllegalArgumentException | DateTimeException exception) {
-                throw new ObservationParseException(i + 1, exception.getMessage(), exception);
+                throw new ObservationParseException(i + 1, exception);
             }
         }
         journal.addImportedObservations(parsed);

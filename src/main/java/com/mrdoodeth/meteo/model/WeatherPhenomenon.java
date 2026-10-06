@@ -11,9 +11,7 @@ public enum WeatherPhenomenon {
     FOG,
     THUNDERSTORM;
 
-    /** Указывает, является ли само явление осадками.
-     * @return true для дождя, снега и града
-     */
+    /** Указывает, является ли само явление осадками. */
     public boolean isPrecipitation() {
         return switch (this) {
             case RAIN, SNOW, HAIL -> true;

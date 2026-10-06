@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
-/** Хранилище метеоданных в памяти и расчёты по районам. */
+/** Хранилище метеоданных и расчёты по районам. */
 public final class WeatherJournal {
     private final Set<District> registeredDistricts = new HashSet<>();
     private final Set<Station> registeredStations = new HashSet<>();
@@ -44,18 +44,19 @@ public final class WeatherJournal {
     }
 
     /** Регистрирует станцию по ID района и его поясу.
-     * Равная по данным копия района допускается; журнал сохраняет станцию со своим экземпляром района.
      * @param station станция с глобально уникальным ID
      * @throws IllegalArgumentException при повторном ID, неизвестном районе или несовпадении пояса
      */
     public void addStation(Station station) {
         Objects.requireNonNull(station, "station");
         var registeredDistrict = districtById(station.district().id());
-        if (!registeredDistrict.zone().equals(station.district().zone())) {
+
+        // Нужно, если по id районы совпадают, а по зонам расходятся
+        if (!Objects.equals(registeredDistrict.zone(), station.district().zone())) {
             throw new IllegalArgumentException("District zone does not match registered district: "
-                    + station.district().id());
+                    + station.district().zone());
         }
-        if (!registeredStations.add(new Station(station.id(), registeredDistrict))) {
+        if (!registeredStations.add(station)) {
             throw new IllegalArgumentException("Station already exists: " + station.id());
         }
     }
@@ -70,14 +71,14 @@ public final class WeatherJournal {
         registeredObservations.add(observation);
     }
 
-    /** Возвращает неизменяемый снимок множества станций.
-     * @return зарегистрированные станции
+    /**
+     * @return неизменяемый снимок множества станций
      */
     public Set<Station> stations() {
         return Set.copyOf(registeredStations);
     }
 
-    /** Возвращает статистику всех показаний района в [from, to), либо пустой Optional.
+    /** Возвращает статистику всех показаний района в [from, to).
      * @param districtId ID района
      * @param from включённое начало
      * @param to исключённый конец
@@ -98,8 +99,8 @@ public final class WeatherJournal {
         ));
     }
 
-    /** Возвращает неизменяемый суточный ряд станций района, отсортированный по времени и ID.
-     * День определяется поясом района; значения разных станций не усредняются.
+    /** Возвращает неизменяемый суточный ряд температурных точек станций района, отсортированный по времени и ID.
+     * День определяется поясом района.
      * @param districtId ID района
      * @param day календарная дата района
      * @return отсортированные точки, либо пустой список
@@ -110,7 +111,8 @@ public final class WeatherJournal {
         Objects.requireNonNull(day, "day");
         var from = day.atStartOfDay(district.zone()).toInstant();
         var to = day.plusDays(1).atStartOfDay(district.zone()).toInstant();
-        return calculate(observationsInDistrict(districtId, from, to), DailyTemperatureCalculation.INSTANCE);
+        var neededObservation = observationsInDistrict(districtId, from, to);
+        return calculate(neededObservation, DailyTemperatureCalculation.INSTANCE);
     }
 
     /** Возвращает уникальные отсортированные дни осадков среди показаний в [from, to).
@@ -123,8 +125,8 @@ public final class WeatherJournal {
     public List<LocalDate> precipitationDays(String districtId, Instant from, Instant to) {
         var district = districtById(districtId);
         validatePeriod(from, to);
-        return calculate(observationsInDistrict(districtId, from, to),
-                new PrecipitationDaysCalculation(district.zone()));
+        var neededObservation = observationsInDistrict(districtId, from, to);
+        return calculate(neededObservation, new PrecipitationDaysCalculation(district.zone()));
     }
 
     /** Возвращает наблюдения района в один момент UTC, упорядоченные по ID станции.
@@ -138,7 +140,10 @@ public final class WeatherJournal {
         Objects.requireNonNull(timestamp, "timestamp");
         return registeredObservations.stream()
                 .filter(observation -> observation.timestamp().equals(timestamp))
-                .filter(observation -> stationById(observation.stationId()).district().id().equals(districtId))
+                .filter(observation -> {
+                    var station = stationById(observation.stationId());
+                    return Objects.equals(station.district().id() , districtId);
+                })
                 .sorted(Comparator.comparing(Observation::stationId))
                 .toList();
     }
@@ -185,8 +190,8 @@ public final class WeatherJournal {
 
         for (var entry : byDay.entrySet()) {
             var average = calculate(entry.getValue(), WeatherMetric.TEMPERATURE).average();
-            var deviation = BigDecimal.valueOf(average).subtract(BigDecimal.valueOf(normalTemperature)).abs();
-            if (deviation.compareTo(BigDecimal.valueOf(threshold)) > 0) {
+            var deviation = Math.abs(average - normalTemperature);
+            if ((deviation - threshold) > 0) {
                 result.add(entry.getKey());
             }
         }

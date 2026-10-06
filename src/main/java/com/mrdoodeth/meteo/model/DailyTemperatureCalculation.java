@@ -5,7 +5,6 @@ import java.util.List;
 
 /** Формирует суточный ход температуры по уже отобранному местному дню. */
 public enum DailyTemperatureCalculation implements ObservationCalculation<List<TemperaturePoint>> {
-    /** Единственный экземпляр расчёта суточного ряда. */
     INSTANCE;
 
     /** {@inheritDoc} */

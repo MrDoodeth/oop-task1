@@ -3,7 +3,7 @@ package com.mrdoodeth.meteo.model;
 import java.time.Instant;
 import java.util.Objects;
 
-/** Точка суточного хода без усреднения между станциями.
+/** Точка суточного хода температуры.
  * @param stationId станция
  * @param timestamp момент измерения
  * @param temperature температура в градусах Цельсия

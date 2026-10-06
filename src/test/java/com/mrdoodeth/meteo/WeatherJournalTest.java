@@ -103,14 +103,17 @@ class WeatherJournalTest {
     }
 
     @Test
-    void equalDistrictCopyIsAcceptedButRegisteredDistrictIsStored() {
+    void equalDistrictCopyIsAcceptedAndInputStationIsStored() {
         var copy = new District("d1", district.zone());
         assertNotSame(district, copy);
-        journal.addStation(new Station("s4", copy));
+        var station = new Station("s4", copy);
+        journal.addStation(station);
         var registered = journal.stations().stream()
-                .filter(station -> station.id().equals("s4"))
+                .filter(value -> value.id().equals("s4"))
                 .findFirst().orElseThrow();
-        assertSame(district, registered.district());
+        assertSame(station, registered);
+        assertSame(copy, registered.district());
+        assertEquals(district, registered.district());
         journal.addObservation(observation("s4", START, 8));
         assertEquals(8, journal.statistics("d1", START, END).orElseThrow().temperature().average());
     }

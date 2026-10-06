@@ -7,7 +7,7 @@ import java.util.List;
  */
 public interface ObservationCalculation<R> {
     /** Вычисляет результат по наблюдениям.
-     * @param observations наблюдения, отобранные вызывающим кодом
+     * @param observations наблюдения
      * @return результат расчёта
      */
     R calculate(List<Observation> observations);

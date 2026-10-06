@@ -19,19 +19,12 @@ public record District(String id, ZoneId zone) {
         Objects.requireNonNull(zone, "zone");
     }
 
-    /** Сравнивает районы по ID.
-     * @param other объект для сравнения
-     * @return true при одинаковом ID района
-     */
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof District district)) return false;
         return Objects.equals(id, district.id);
     }
 
-    /** Возвращает хеш идентификатора района.
-     * @return хеш ID
-     */
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
